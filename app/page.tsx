@@ -19,6 +19,12 @@ const [duration, setDuration] = useState(0);
   const [activeTool, setActiveTool] = useState("Media");
   const videoRef = useRef<HTMLVideoElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+function importFiles(list: FileList | null) {
+  if (!list) return;
+  const imported = Array.from(list);
+  setFiles(old => [...old, ...imported]);
+  if (!selected) setSelected(imported[0]);
+}
 
   async function togglePlayback() {
   const video = videoRef.current;
