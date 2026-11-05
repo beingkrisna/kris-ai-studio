@@ -150,7 +150,7 @@ function formatTime(time: number) {
             <button className="play-btn" onClick={togglePlayback}>
               {playing ? <Pause size={19}/> : <Play size={19}/>}
             </button>
-            <<span>
+            <span>
   {formatTime(currentTime)} / {formatTime(duration)}
 </span>
             <button className="icon-btn"><Volume2 size={18}/></button>
