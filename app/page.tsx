@@ -11,6 +11,7 @@ import {
 
 export default function Home() {
   const [files, setFiles] = useState<File[]>([]);
+const [timelineClips, setTimelineClips] = useState<File[]>([]);
   const [selected, setSelected] = useState<File | null>(null);
   const [playing, setPlaying] = useState(false);
   const [activeTool, setActiveTool] = useState("Media");
@@ -95,7 +96,12 @@ export default function Home() {
             {files.map((file, index) => (
               <button key={`${file.name}-${index}`}
                 className={`asset ${selected === file ? "selected" : ""}`}
-                onClick={() => setSelected(file)}>
+                onClick={() => {
+  setSelected(file);
+  if (file.type.startsWith("video/")) {
+    setTimelineClips(old => [...old, file]);
+  }
+}}>
                 {file.type.startsWith("video/") ? <Video/> :
                   file.type.startsWith("audio/") ? <Music2/> : <Image/>}
                 <span>{file.name}</span>
@@ -149,8 +155,12 @@ export default function Home() {
               <div className="track" key={label}>
                 <div className="track-label"><Icon size={15}/>{label}</div>
                 <div className="track-content">
-                  {label === "VIDEO 1" && selected &&
-                    <div className="clip">{selected.name}</div>}
+                  {label === "VIDEO 1" &&
+  timelineClips.map((clip, index) => (
+    <div className="clip" key={`${clip.name}-${index}`}>
+      {clip.name}
+    </div>
+  ))}
                   {label === "OVERLAY" &&
                     <div className="empty-track">Add text overlays</div>}
                   {label === "AUDIO 1" &&
