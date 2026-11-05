@@ -14,32 +14,35 @@ export default function Home() {
 const [timelineClips, setTimelineClips] = useState<File[]>([]);
   const [selected, setSelected] = useState<File | null>(null);
   const [playing, setPlaying] = useState(false);
+const [currentTime, setCurrentTime] = useState(0);
+const [duration, setDuration] = useState(0);
   const [activeTool, setActiveTool] = useState("Media");
   const videoRef = useRef<HTMLVideoElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  function importFiles(list: FileList | null) {
-    if (!list) return;
-    const imported = Array.from(list);
-    setFiles(old => [...old, ...imported]);
-    if (!selected) setSelected(imported[0]);
-  }
+  async function togglePlayback() {
+  const video = videoRef.current;
+  if (!video) return;
 
-  function togglePlayback() {
-    const video = videoRef.current;
-    if (!video) return;
-    if (video.paused) {
-      video.play();
-      setPlaying(true);
-    } else {
-      video.pause();
-      setPlaying(false);
+  if (video.paused) {
+    try {
+      await video.play();
+    } catch (error) {
+      console.error("Playback failed:", error);
     }
+  } else {
+    video.pause();
   }
+}
 
   const isVideo = selected?.type.startsWith("video/");
   const previewUrl = selected ? URL.createObjectURL(selected) : null;
-
+function formatTime(time: number) {
+  if (!Number.isFinite(time)) return "00:00";
+  const minutes = Math.floor(time / 60);
+  const seconds = Math.floor(time % 60);
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
   return (
     <main className="studio">
       <header className="topbar">
@@ -119,8 +122,19 @@ const [timelineClips, setTimelineClips] = useState<File[]>([]);
           <div className="preview-area">
             <div className="preview-frame">
               {selected && isVideo && previewUrl ?
-                <video ref={videoRef} src={previewUrl} controls={false}
-                  onEnded={() => setPlaying(false)} /> :
+                <video
+  ref={videoRef}
+  src={previewUrl}
+  controls={false}
+  onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
+  onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+  onPlay={() => setPlaying(true)}
+  onPause={() => setPlaying(false)}
+  onEnded={() => {
+    setPlaying(false);
+    setCurrentTime(0);
+  }}
+/> :
                 selected && previewUrl ?
                   <img src={previewUrl} alt="Selected media"/> :
                   <div className="placeholder">
@@ -136,7 +150,9 @@ const [timelineClips, setTimelineClips] = useState<File[]>([]);
             <button className="play-btn" onClick={togglePlayback}>
               {playing ? <Pause size={19}/> : <Play size={19}/>}
             </button>
-            <span>00:00 / 00:00</span>
+            <<span>
+  {formatTime(currentTime)} / {formatTime(duration)}
+</span>
             <button className="icon-btn"><Volume2 size={18}/></button>
           </div>
 
